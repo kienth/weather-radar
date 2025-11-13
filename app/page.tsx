@@ -46,7 +46,8 @@ export default function Home() {
               <div>
                 <h1 className="text-2xl font-bold text-white">MRMS Radar</h1>
                 <p className="text-sm text-slate-400">
-                  Real-time Reflectivity at Lowest Altitude (RALA)
+                  Real-time Reflectivity at Lowest Altitude (RALA) - Kienth
+                  James B. Acenas
                 </p>
               </div>
             </div>
