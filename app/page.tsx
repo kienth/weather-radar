@@ -4,12 +4,13 @@ import { useState, useEffect } from "react";
 import RadarDisplay from "@/components/radar-display";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { RotateCw, MapPin } from "lucide-react";
+import { RotateCw, MapPin, Menu, X } from "lucide-react";
 
 export default function Home() {
   const [lastUpdate, setLastUpdate] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [dataAge, setDataAge] = useState<number>(0);
+  const [sidebarVisible, setSidebarVisible] = useState(false);
 
   // Update data age every 10 seconds
   useEffect(() => {
@@ -24,6 +25,19 @@ export default function Home() {
 
     return () => clearInterval(interval);
   }, [lastUpdate]);
+
+  // Auto-close sidebar on desktop view
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        // lg breakpoint
+        setSidebarVisible(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const handleRefresh = async () => {
     setIsLoading(true);
@@ -52,7 +66,7 @@ export default function Home() {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <div className="text-right">
+              <div className="text-right hidden sm:block">
                 <p className="text-sm font-mono text-slate-300">
                   {lastUpdate
                     ? new Date(lastUpdate).toLocaleTimeString()
@@ -62,27 +76,70 @@ export default function Home() {
                   {dataAge > 0 && `${dataAge}s ago`}
                 </p>
               </div>
-              <Button
-                onClick={handleRefresh}
-                disabled={isLoading}
-                size="sm"
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                <RotateCw className="w-4 h-4 mr-2" />
-                Refresh
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={handleRefresh}
+                  disabled={isLoading}
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <RotateCw className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">Refresh</span>
+                </Button>
+                <Button
+                  onClick={() => setSidebarVisible(!sidebarVisible)}
+                  size="sm"
+                  className="bg-slate-700 hover:bg-slate-600 text-white lg:hidden"
+                >
+                  {sidebarVisible ? (
+                    <X className="w-4 h-4" />
+                  ) : (
+                    <Menu className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Main Radar Display */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex overflow-hidden relative">
           <div className="flex-1">
             <RadarDisplay onLastUpdateChange={setLastUpdate} />
           </div>
 
+          {/* Mobile Overlay */}
+          {sidebarVisible && (
+            <div
+              className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+              onClick={() => setSidebarVisible(false)}
+              style={{ zIndex: 9998 }}
+            />
+          )}
+
           {/* Side Panel */}
-          <div className="w-80 bg-slate-900 border-l border-slate-700 overflow-y-auto">
+          <div
+            className={`
+            w-80 bg-slate-900 border-l border-slate-700 overflow-y-auto
+            lg:relative lg:translate-x-0
+            fixed right-0 top-0 h-full transition-transform duration-300 ease-in-out
+            ${sidebarVisible ? "translate-x-0" : "translate-x-full"}
+            lg:block
+          `}
+            style={{ zIndex: 9999 }}
+          >
+            {/* Mobile Close Button */}
+            <div className="lg:hidden flex justify-end p-4 border-b border-slate-700">
+              <Button
+                onClick={() => setSidebarVisible(false)}
+                size="sm"
+                variant="ghost"
+                className="text-slate-400 hover:text-white hover:bg-slate-700"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+
             <Card className="m-4 border-slate-700 bg-slate-800">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-semibold text-white flex items-center gap-2">
